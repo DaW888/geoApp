@@ -64,8 +64,6 @@ class List extends Component {
         this.setState({
             data: maps
         })
-         return
-
     }
 
 
