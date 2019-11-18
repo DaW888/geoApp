@@ -16,23 +16,33 @@ class Map extends Component {
         headerTintColor: Colors.bc
     }
 
+    getMarks = () => {
+        const locations = this.props.navigation.state.params.locations;
+        const rendMark = locations.map(({timestamp, coords}) => {
+            return <MapView.Marker
+                key={timestamp}
+                coordinate={{
+                    latitude: coords.latitude,
+                    longitude: coords.longitude,
+                }}
+                title={"position"}
+                description={timestamp.toString()}
+            />
+        })
+        return rendMark;
+    };
+
 
     render() {
+        const locations = this.props.navigation.state.params.locations;
         return (
             <MapView style={{flex: 1}} initialRegion={{
-                latitude: 50.0,
-                longitude: 20.0,
-                latitudeDelta: 0.6,
-                longitudeDelta: 0.6
+                latitude: locations[0].coords.latitude,
+                longitude: locations[0].coords.longitude,
+                latitudeDelta: 0.1,
+                longitudeDelta: 0.1
             }}>
-                <MapView.Marker
-                    coordinate={{
-                        latitude: 50.111,
-                        longitude: 20.111,
-                    }}
-                    title={"pos"}
-                    description={"opis"}
-                />
+                {this.getMarks()}
             </MapView>
         );
     }

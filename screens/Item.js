@@ -8,6 +8,24 @@ class Item extends Component {
         switch: this.props.data.turn,
     }
 
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.props.on !== prevProps.on) {
+            if (this.props.on) {
+                this.setState({
+                    switch: true,
+                });
+                this.props.save(true, this.props.data);
+
+            } else {
+                this.setState({
+                    switch: false
+                });
+                this.props.save(false, this.props.data);
+            }
+        }
+
+    }
+
 
     switchChange = () => {
         this.setState({
@@ -19,7 +37,7 @@ class Item extends Component {
         if (!this.state.switch) {
             this.props.save(true, this.props.data);
         } else {
-            this.props.save(false, this.props.data.timestamp)
+            this.props.save(false, this.props.data);
         }
     }
 
@@ -62,7 +80,7 @@ const styles = StyleSheet.create({
     },
 
     text: {
-      fontSize: 14
+        fontSize: 14
     },
 
     switch: {

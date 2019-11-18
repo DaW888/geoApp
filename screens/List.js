@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, Text, StyleSheet, FlatList, AsyncStorage, Switch} from 'react-native';
+import {View, Text, StyleSheet, FlatList, AsyncStorage, Switch, ActivityIndicator} from 'react-native';
 import Colors from "../constants/Colors";
 import Bt from "../components/Bt";
 import * as Location from "expo-location";
@@ -24,7 +24,8 @@ class List extends Component {
         data: null,
         render: false,
         switch: false,
-        locToMap : [],
+        locToMap: [],
+        waitForPos: false
     }
 
     componentDidMount = async () => {
@@ -36,10 +37,18 @@ class List extends Component {
 
 
     getPosition = async () => {
+        this.setState({
+            waitForPos: true
+        });
+
         console.log('get pos');
         let pos = await Location.getCurrentPositionAsync();
         alert(JSON.stringify(pos, null, 4));
         this.savePosition(pos)
+
+        this.setState({
+            waitForPos: false
+        });
     }
 
     savePosition = async (pos) => {
@@ -76,7 +85,9 @@ class List extends Component {
     }
 
     goToMap = () => {
-        this.props.navigation.navigate("Map")
+        if (this.state.locToMap.length !== 0)
+            this.props.navigation.navigate("Map", {locations: this.state.locToMap});
+        else alert('zaznacz cos');
     }
 
     changeSwitch = () => {
@@ -98,22 +109,17 @@ class List extends Component {
     }
 
     save = (save, data) => {
-        // const map = this.state.locToMap;
-        // if (save) {
-        //     this.setState( {
-        //         locToMap: map.push(data)
-        //     })
-        // } else {
-        //     const m = map.reduce(el => {
-        //         if (el.timestamp !== data)
-        //             return el
-        //     })
-        //     this.setState({
-        //         locToMap: m
-        //     })
-        // }
-        //
-        // console.log(this.state.locToMap);
+        console.log(save, data);
+        const maps = [...this.state.locToMap];
+        if (save) {
+            maps.push(data);
+        } else {
+            const ind = maps.indexOf(data);
+            maps.splice(ind, 1);
+        }
+        this.setState({
+            locToMap: maps
+        })
     }
 
     btStyles = {
@@ -139,8 +145,14 @@ class List extends Component {
         return (
             <View style={styles.cont}>
                 <View style={styles.bar}>
-                    <Bt textStyle={this.btStyles.text} contStyle={this.btStyles.cont} text={'get and save position'}
-                        click={this.getPosition}/>
+                    {
+                        this.state.waitForPos ?
+                            <ActivityIndicator style={{flex: 1}} size="large" color={Colors.main}/>
+                            :
+                            <Bt textStyle={this.btStyles.text} contStyle={this.btStyles.cont}
+                                text={'get and save position'}
+                                click={this.getPosition}/>
+                    }
                     <Bt textStyle={this.btStyles.text} contStyle={this.btStyles.cont} text={'remove all data'}
                         click={this.removeData}/>
                 </View>
@@ -155,12 +167,14 @@ class List extends Component {
                         this.state.render ?
                             <FlatList
                                 data={this.state.data} keyExtractor={(item, index) => item + index}
-                                renderItem={({item}) => <Item key={item.timestamp} data={item} on={this.state.switch} save={this.save}/>}
+                                renderItem={({item}) => <Item key={item.timestamp} data={item}
+                                                              on={this.state.switch} save={this.save}/>}
                             />
                             : null
                     }
                 </View>
             </View>
+
         );
     }
 }
